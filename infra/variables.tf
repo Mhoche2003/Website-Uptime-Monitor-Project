@@ -9,3 +9,8 @@ variable "project_name" {
   type        = string
   default     = "website-uptime-monitor"
 }
+
+variable "alert_email" {
+  description = "Email address subscribed to alert notifications. Set in terraform.tfvars (gitignored), never with a default here."
+  type        = string
+}
