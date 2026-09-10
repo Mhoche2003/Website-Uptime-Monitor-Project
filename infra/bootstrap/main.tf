@@ -1,8 +1,7 @@
 data "aws_caller_identity" "current" {}
 
-# S3 bucket storing the Terraform state file for the rest of the project.
-# This bucket is managed with a local state (see README in this folder) since
-# it cannot use itself as a backend.
+#Le bucket stock uniquement le fichier d'état Terraform
+#Il est géré à part puisqu'il ne peut pas servir de backend à lui-même
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "${var.project_name}-tfstate-${data.aws_caller_identity.current.account_id}"
 
@@ -12,9 +11,9 @@ resource "aws_s3_bucket" "terraform_state" {
     Purpose   = "terraform-state"
   }
 }
-
-# Versioning keeps previous state files, so a bad apply or accidental delete
-# can be rolled back instead of losing track of deployed resources.
+#versionning
+#Le but est de garder les anciennes versions du state.
+#Si un apply casse quelque chose ou si le state est supprimé par erreur ça permet de revenir en arrière
 resource "aws_s3_bucket_versioning" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
 
@@ -23,8 +22,9 @@ resource "aws_s3_bucket_versioning" "terraform_state" {
   }
 }
 
-# The state file can contain resource IDs and other sensitive metadata.
-# Encrypt it at rest.
+#Chiffrement
+#Le state peut contenir des infos sensibles comme IDs de ressources, métadonnées ect.
+#On utilise le chiffrement pour protèger les infos sensibles si le bucket venait à être exposé.
 resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
 
@@ -34,8 +34,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" 
     }
   }
 }
-
-# The state bucket must never be reachable from the internet.
+#Blocage d'accès public
 resource "aws_s3_bucket_public_access_block" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
 
@@ -45,8 +44,7 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
   restrict_public_buckets = true
 }
 
-# DynamoDB table used by Terraform to lock the state during apply, so two
-# "terraform apply" can't run at the same time and corrupt the state.
+#Empêche que deux terraform apply tournent en même temps et compromettent le state.
 resource "aws_dynamodb_table" "terraform_locks" {
   name         = "${var.project_name}-tfstate-lock"
   billing_mode = "PAY_PER_REQUEST"

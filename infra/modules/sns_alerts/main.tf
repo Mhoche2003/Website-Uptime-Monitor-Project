@@ -3,9 +3,8 @@ resource "aws_sns_topic" "alerts" {
   tags = var.tags
 }
 
-# AWS emails a confirmation link to this address; alerts only start flowing
-# once it's clicked. This is standard SNS behavior, not something Terraform
-# can bypass.
+#AWS envoie un lien de confirmation à l'email fourni.
+#Les alertes arrivent seulement après avoir cliqué sur le lien.
 resource "aws_sns_topic_subscription" "email" {
   topic_arn = aws_sns_topic.alerts.arn
   protocol  = "email"

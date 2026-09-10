@@ -1,10 +1,6 @@
-# Stores every check result, so the dashboard can compute uptime %,
-# average response time and recent incidents.
-#
-# Key design: hash_key = check_type ("availability" | "latency" | "content"),
-# range_key = timestamp (ISO 8601). This lets us query "all results of one
-# check type, ordered by time" directly, which is exactly what the dashboard
-# needs, with no secondary index.
+#Cette table stocke le résultat de chaque check du site.
+#Chaque ligne est identifiée par le type de check (availability/latency/content) et la date du test
+
 resource "aws_dynamodb_table" "history" {
   name         = "${var.project_name}-check-history"
   billing_mode = "PAY_PER_REQUEST"
