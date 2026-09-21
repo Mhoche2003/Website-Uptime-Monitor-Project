@@ -14,3 +14,15 @@ variable "alert_email" {
   description = "Email address subscribed to alert notifications. Set in terraform.tfvars (gitignored), never with a default here."
   type        = string
 }
+
+variable "site_marker_text" {
+  description = "Text the content check looks for on the monitored site's page."
+  type        = string
+  default     = "Website Uptime Monitor - test page"
+}
+
+variable "latency_threshold_seconds" {
+  description = "Latency threshold in seconds above which the latency check fails."
+  type        = number
+  default     = 30
+}

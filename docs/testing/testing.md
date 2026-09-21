@@ -8,13 +8,13 @@ Le test est simple : on supprime le fichier `index.html` hébergé sur le bucket
 
 En invoquant la Lambda manuellement, la notification arrive presque immédiatement.
 
-![Notifications SNS - test availability](images/testing/test1-sns-notifications.png)
+![Notifications SNS - test availability](images/test1-sns-notifications.png)
 
 À noter: supprimer le fichier html déclenche en réalité les 3 alertes (availability, latency et content), d'où les notifications multiples reçues. Le système ne fait pas la différence entre une vraie panne du site et un test isolé d'une seule Lambda, chaque check étant indépendant. Centraliser les alertes est une amélioration à prévoir pour la suite.
 
 On vérifie ensuite dans DynamoDB que l'échec est bien enregistré (`success = false`) :
 
-![Résultats DynamoDB - test availability](images/testing/test1-dynamodb-results.png)
+![Résultats DynamoDB - test availability](images/test1-dynamodb-results.png)
 
 Pour remettre le site dans son état initial, un simple `terraform apply` suffit : Terraform recrée l'objet `index.html` avec le contenu défini dans la config. Ce fichier n'a pas de versioning S3 activé, donc pas de risque à le supprimer, contrairement à d'autres ressources plus critiques du projet.
 
@@ -30,11 +30,11 @@ terraform apply -var="latency_threshold_seconds=0.001"
 
 on abaisse temporairement le seuil par défaut (30 secondes) à 0.001 seconde. En invoquant la Lambda `check_latency`, le temps de réponse réel dépasse forcément ce seuil et déclenche l'alerte :
 
-![Notification SNS - test latency](images/testing/test2-sns-notification.png)
+![Notification SNS - test latency](images/test2-sns-notification.png)
 
 On vérifie dans DynamoDB (requête en mode Query, tri décroissant pour voir les entrées les plus récentes en premier) :
 
-![Résultats DynamoDB - test latency](images/testing/test2-dynamodb-results.png)
+![Résultats DynamoDB - test latency](images/test2-dynamodb-results.png)
 
 Pour revenir à la config normale, un `terraform apply` sans l'option `-var` suffit : Terraform réapplique la valeur par défaut définie dans `variables.tf`.
 
@@ -42,19 +42,19 @@ Pour revenir à la config normale, un `terraform apply` sans l'option `-var` suf
 
 Ce test-là est différent: il porte sur le contenu affiché par le site, pas sur sa disponibilité ou sa vitesse. Le principe : on uploade un fichier `index.html` de remplacement, avec le même nom que l'original, ce qui écrase le fichier existant sur le bucket S3.
 
-![Statut de l'upload S3](images/testing/test3-s3-upload-status.png)
+![Statut de l'upload S3](images/test3-s3-upload-status.png)
 
 Le site affiche alors un contenu différent de celui attendu :
 
-![Contenu affiché après remplacement](images/testing/test3-browser-content.png)
+![Contenu affiché après remplacement](images/test3-browser-content.png)
 
 En invoquant la Lambda `check_content`, on reçoit une notification d'erreur confirmant que le contenu attendu n'est plus sur la page :
 
-![Notification SNS - test content](images/testing/test3-sns-notification.png)
+![Notification SNS - test content](images/test3-sns-notification.png)
 
 Vérification dans DynamoDB : l'échec est bien enregistré (`success = false`), avec le message d'erreur correspondant :
 
-![Résultats DynamoDB - test content](images/testing/test3-dynamodb-results.png)
+![Résultats DynamoDB - test content](images/test3-dynamodb-results.png)
 
 Pour restaurer le bon contenu, un `terraform apply` classique ne suffit pas ici. La ressource `aws_s3_object` ne détecte pas automatiquement les changements faits en dehors de Terraform : le state ne garde que le contenu défini dans la config, pas ce qui se trouve réellement sur le bucket. Il faut donc forcer la recréation de l'objet :
 

@@ -14,7 +14,7 @@ Three independent checks run periodically on the monitored website. The availabi
 
 The diagram below represent the whole system from the check scheduling to the three Lambda functions the history storage the alert system and the dashboard feed.
 
-![Architecture](docs/Infra%20website%20Uptime%20Monitor%20Project.png)
+![Architecture](docs/architecture/architecture.png)
 
 ## Stack
 
