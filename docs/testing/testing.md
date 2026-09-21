@@ -1,4 +1,4 @@
-# Test des Lambdas — Website Uptime Monitor
+# Test des Lambdas Website Uptime Monitor
 
 Le but ici est de tester les trois Lambdas indépendamment (availability, latency, content), pour vérifier qu'elles fonctionnent bien avant de considérer le système comme opérationnel.
 
