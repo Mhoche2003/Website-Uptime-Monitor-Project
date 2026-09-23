@@ -1,21 +1,21 @@
-# Test de l'agrégation des métriques Website Uptime Monitor
+# Testing the metrics aggregation - Website Uptime Monitor
 
-Ce test vérifie que la Lambda aggregate_metrics calcule bien les statistiques à partir de l'historique DynamoDB et les publie dans le fichier metrics.json sur le bucket S3 du dashboard.
+This test checks that the aggregate_metrics Lambda correctly calculates the statistics from the DynamoDB history and publishes them to the metrics.json file on the dashboard S3 bucket.
 
-## Test: génération et publication de metrics.json
+## Test: generating and publishing metrics.json
 
-La Lambda website-uptime-monitor-aggregate-metrics se déclenche normalement toute seule via EventBridge, mais on peut aussi l'invoquer manuellement depuis la console AWS, dans l'onglet Test:
+The website-uptime-monitor-aggregate-metrics Lambda normally triggers on its own through EventBridge, but it can also be invoked manually from the AWS console, in the Test tab:
 
-![Console AWS Lambda - aggregate_metrics](images/test4-lambda-console.png)
+![AWS Lambda console - aggregate_metrics](images/test4-lambda-console.png)
 
-Après l'invocation, le fichier metrics.json apparaît bien dans le bucket website-uptime-monitor-dashboard:
+After the invocation, the metrics.json file correctly appears in the website-uptime-monitor-dashboard bucket:
 
-![Objet metrics.json dans le bucket S3](images/test4-s3-metrics-object.png)
+![metrics.json object in the S3 bucket](images/test4-s3-metrics-object.png)
 
-En ouvrant le fichier directement depuis l'URL du bucket, on retrouve les métriques calculées: la disponibilité du site sur la période (availability_percent à 99.57), le temps de réponse moyen (average_response_time_seconds à 0.096), le nombre d'échecs par type de check avec failures_by_check, et le nombre total de checks exécutés par type avec total_checks_by_check, identique pour les trois (1402) puisque les trois Lambdas de check tournent sur le même intervalle.
+Opening the file directly from the bucket URL shows the calculated metrics: the site availability over the period (availability_percent at 99.57), the average response time (average_response_time_seconds at 0.096), the number of failures per check type with failures_by_check, and the total number of checks run per type with total_checks_by_check, the same for all three (1402) since the three check Lambdas run on the same interval.
 
-![Contenu du fichier metrics.json](images/test4-metrics-json-content.png)
+![Content of the metrics.json file](images/test4-metrics-json-content.png)
 
-## Constat
+## Finding
 
-Les échecs comptés ici (6 availability, 7 latency, 13 content) comprennent ceux déclenchés volontairement pendant les tests des 3 Lambdas (voir testing-3-lambdas.md), pas que des vrais incidents. Le test montre que le pipeline DynamoDB, Lambda, S3 fonctionne bien de bout en bout, mais ça reste une vérification à l'oeil: pas de recalcul indépendant pour confirmer que les chiffres sont bons. Une amélioration possible serait un test qui recalcule les métriques directement depuis DynamoDB et compare avec metrics.json.
+The failures counted here (6 availability, 7 latency, 13 content) include the ones triggered on purpose during the testing of the 3 Lambdas (see testing-3-lambdas.md), not just real incidents. The test shows that the DynamoDB, Lambda, S3 pipeline works correctly end to end, but it's still a visual check: no independent recalculation to confirm the numbers are correct. A possible improvement would be a test that recalculates the metrics directly from DynamoDB and compares them with metrics.json.

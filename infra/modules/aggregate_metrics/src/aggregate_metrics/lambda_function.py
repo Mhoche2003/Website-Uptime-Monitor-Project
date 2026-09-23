@@ -4,11 +4,11 @@ import boto3
 from datetime import datetime, timezone
 from boto3.dynamodb.conditions import Key
 
-# Depuis terraform
+# From terraform
 TABLE_NAME = os.environ["DYNAMODB_TABLE"]
 BUCKET_NAME = os.environ["DASHBOARD_BUCKET"]
 
-# Les clients AWS sont crees ici donc en dehors de la fonction afin de ne pas les refaire a chaque appel
+# AWS clients are created here, outside the function, so they are not recreated on every call
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(TABLE_NAME)
 s3 = boto3.client("s3")
@@ -18,10 +18,10 @@ CHECK_TYPES = ["availability", "latency", "content"]
 
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
-    # Le mois en cours commence toujours le 1er a minuit
+    # The current month always starts on the 1st at midnight
     period_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-    # On recupere les lignes du mois en cours separement pour chaque type de check
+    # We fetch the rows of the current month separately for each check type
     items_by_check = {
         check_type: get_month_items(check_type, period_start, now)
         for check_type in CHECK_TYPES
@@ -30,16 +30,16 @@ def lambda_handler(event, context):
     availability_items = items_by_check["availability"]
     latency_items = items_by_check["latency"]
 
-    # La disponibilite est calculee uniquement sur le check availability
+    # Availability is calculated only from the availability check
     total_availability = len(availability_items)
     success_availability = sum(1 for item in availability_items if item["success"])
     availability_percent = round((success_availability / total_availability) * 100, 2) if total_availability else 0
 
-    # Le temps de reponse moyen est calcule uniquement sur le check latency
+    # The average response time is calculated only from the latency check
     response_times = [float(item["response_time"]) for item in latency_items]
     average_response_time = round(sum(response_times) / len(response_times), 3) if response_times else 0
 
-    # On compte les echecs et le total de checks pour chaque type, sans les regrouper en incidents
+    # We count the failures and the total checks for each type, without grouping them into incidents
     failures_by_check = {}
     total_checks_by_check = {}
     for check_type, items in items_by_check.items():
@@ -58,7 +58,7 @@ def lambda_handler(event, context):
         "total_checks_by_check": total_checks_by_check,
     }
 
-    # On ecrit le resultat en JSON directement sur le bucket du dashboard, le fichier ecrase le precedent a chaque execution
+    # We write the result as JSON directly to the dashboard bucket, the file overwrites the previous one on every run
     s3.put_object(
         Bucket=BUCKET_NAME,
         Key="metrics.json",
@@ -70,7 +70,7 @@ def lambda_handler(event, context):
 
 
 def get_month_items(check_type, period_start, now):
-    # La table est interrogee avec Query plutot que Scan car on connait la partition key (check_type), c'est plus rapide et moins cher
+    # The table is queried with Query instead of Scan since we know the partition key (check_type), it's faster and cheaper
     items = []
     query_kwargs = {
         "KeyConditionExpression": Key("check_type").eq(check_type)
@@ -81,7 +81,7 @@ def get_month_items(check_type, period_start, now):
         response = table.query(**query_kwargs)
         items.extend(response["Items"])
 
-        # DynamoDB limite une reponse a 1MB, LastEvaluatedKey indique s'il reste des donnees a recuperer
+        # DynamoDB limits a response to 1MB, LastEvaluatedKey shows if there is still data left to fetch
         if "LastEvaluatedKey" not in response:
             break
         query_kwargs["ExclusiveStartKey"] = response["LastEvaluatedKey"]

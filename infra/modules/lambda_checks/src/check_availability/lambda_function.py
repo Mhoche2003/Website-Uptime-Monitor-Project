@@ -1,4 +1,4 @@
-#Les 3 fonctions sont quasi identiques. L'ajout est une verification supplémentaire
+#The 3 functions are almost identical, each one just adds one extra check.
 
 import os
 import time
@@ -9,12 +9,12 @@ from decimal import Decimal
 
 import boto3
 
-# Depuis terraform
+# From terraform
 SITE_URL = os.environ["SITE_URL"]
 DYNAMODB_TABLE = os.environ["DYNAMODB_TABLE"]
 SNS_TOPIC_ARN = os.environ["SNS_TOPIC_ARN"]
 
-# Les clients AWS sont crees ici donc en dehors de la fonction afin de ne pas les refaire a chaque appel 
+# AWS clients are created here, outside the function, so they are not recreated on every call
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(DYNAMODB_TABLE)
 sns = boto3.client("sns")
@@ -26,7 +26,7 @@ def lambda_handler(event, context):
     success = True
     error_message = ""
 
-    # On verifie si le site répond avec un HTTP < 400
+    # We check if the site responds with an HTTP status below 400
     try:
         with urllib.request.urlopen(SITE_URL, timeout=30) as response:
             status = response.status
@@ -39,7 +39,7 @@ def lambda_handler(event, context):
 
     response_time = time.monotonic() - start
 
-    # On enregistre le resultat du check dans DynamoDB a chaque execution (succes ou echec)
+    # We save the check result in DynamoDB on every run (success or failure)
     table.put_item(Item={
         "check_type": "availability",
         "timestamp": timestamp,
@@ -48,7 +48,7 @@ def lambda_handler(event, context):
         "error_message": error_message,
     })
 
-    # L'alerte est envoyee, seulement si le test a echoue
+    # The alert is only sent if the test failed
     if not success:
         sns.publish(
             TopicArn=SNS_TOPIC_ARN,

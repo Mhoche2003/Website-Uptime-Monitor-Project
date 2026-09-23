@@ -3,8 +3,8 @@ resource "aws_sns_topic" "alerts" {
   tags = var.tags
 }
 
-#AWS envoie un lien de confirmation à l'email fourni.
-#Les alertes arrivent seulement après avoir cliqué sur le lien.
+#AWS sends a confirmation link to the email provided.
+#Alerts only start arriving after clicking on the link.
 resource "aws_sns_topic_subscription" "email" {
   topic_arn = aws_sns_topic.alerts.arn
   protocol  = "email"

@@ -7,13 +7,13 @@ from decimal import Decimal
 
 import boto3
 
-# Depuis terraform
+# From terraform
 SITE_URL = os.environ["SITE_URL"]
 DYNAMODB_TABLE = os.environ["DYNAMODB_TABLE"]
 SNS_TOPIC_ARN = os.environ["SNS_TOPIC_ARN"]
 EXPECTED_CONTENT = os.environ["EXPECTED_CONTENT"]
 
-# Les clients AWS sont crees ici donc en dehors de la fonction afin de ne pas les refaire a chaque appel
+# AWS clients are created here, outside the function, so they are not recreated on every call
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(DYNAMODB_TABLE)
 sns = boto3.client("sns")
@@ -25,7 +25,7 @@ def lambda_handler(event, context):
     success = True
     error_message = ""
 
-    # On verifie que le texte attendu est bien present sur la page
+    # We check that the expected text is actually present on the page
     try:
         with urllib.request.urlopen(SITE_URL, timeout=30) as response:
             body = response.read().decode("utf-8", errors="replace")
@@ -38,7 +38,7 @@ def lambda_handler(event, context):
 
     response_time = time.monotonic() - start
 
-    # On enregistre le resultat du check dans DynamoDB a chaque execution (succes ou echec)
+    # We save the check result in DynamoDB on every run (success or failure)
     table.put_item(Item={
         "check_type": "content",
         "timestamp": timestamp,
@@ -47,7 +47,7 @@ def lambda_handler(event, context):
         "error_message": error_message,
     })
 
-    # Une alerte est envoyee seulement quand le texte attendu est absent
+    # An alert is only sent when the expected text is missing
     if not success:
         sns.publish(
             TopicArn=SNS_TOPIC_ARN,

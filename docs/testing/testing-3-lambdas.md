@@ -1,71 +1,71 @@
-# Test des Lambdas Website Uptime Monitor
+# Testing the Lambdas - Website Uptime Monitor
 
-Le but ici est de tester les trois Lambdas indépendamment (availability, latency, content), pour vérifier qu'elles fonctionnent bien avant de considérer le système comme opérationnel.
+The goal here is to test the three Lambdas independently (availability, latency, content), to check that they work correctly before considering the system operational.
 
-## Test 1 : check_availability
+## Test 1: check_availability
 
-Le test est simple : on supprime le fichier `index.html` hébergé sur le bucket S3, pour vérifier qu'une notification d'erreur arrive bien sur le topic SNS (boîte mail).
+The test is simple: we delete the `index.html` file hosted on the S3 bucket, to check that an error notification arrives correctly on the SNS topic via mailbox.
 
-En invoquant la Lambda manuellement, la notification arrive presque immédiatement.
+When invoking the Lambda manually, the notification arrives almost immediately.
 
-![Notifications SNS - test availability](images/test1-sns-notifications.png)
+![SNS notifications - availability test](images/test1-sns-notifications.png)
 
-À noter: supprimer le fichier html déclenche en réalité les 3 alertes (availability, latency et content), d'où les notifications multiples reçues. Le système ne fait pas la différence entre une vraie panne du site et un test isolé d'une seule Lambda, chaque check étant indépendant. Centraliser les alertes est une amélioration à prévoir pour la suite.
+Note: deleting the html file actually triggers all 3 alerts (availability, latency and content), which explains the multiple notifications received. The system doesn't tell the difference between a real site outage and an isolated test of a single Lambda, since each check is independent. Centralizing the alerts is an improvement planned for later.
 
-On vérifie ensuite dans DynamoDB que l'échec est bien enregistré (`success = false`) :
+We then check in DynamoDB that the failure is correctly recorded (`success = false`):
 
-![Résultats DynamoDB - test availability](images/test1-dynamodb-results.png)
+![DynamoDB results - availability test](images/test1-dynamodb-results.png)
 
-Pour remettre le site dans son état initial, un simple `terraform apply` suffit : Terraform recrée l'objet `index.html` avec le contenu défini dans la config. Ce fichier n'a pas de versioning S3 activé, donc pas de risque à le supprimer, contrairement à d'autres ressources plus critiques du projet.
+To put the site back to its initial state, a simple `terraform apply` is enough: Terraform recreates the `index.html` object with the content defined in the config. This file doesn't have S3 versioning enabled, so there is no risk in deleting it, unlike other more critical resources of the project.
 
-## Test 2 : check_latency
+## Test 2: check_latency
 
-Ce test vérifie que dépasser le seuil de latence déclenche bien une alerte.
+This test checks that going over the latency threshold correctly triggers an alert.
 
-En lançant :
+By running:
 
 ```
 terraform apply -var="latency_threshold_seconds=0.001"
 ```
 
-on abaisse temporairement le seuil par défaut (30 secondes) à 0.001 seconde. En invoquant la Lambda `check_latency`, le temps de réponse réel dépasse forcément ce seuil et déclenche l'alerte :
+we temporarily lower the default threshold (30 seconds) to 0.001 second. When invoking the `check_latency` Lambda, the actual response time necessarily goes over this threshold and triggers the alert:
 
-![Notification SNS - test latency](images/test2-sns-notification.png)
+![SNS notification - latency test](images/test2-sns-notification.png)
 
-On vérifie dans DynamoDB (requête en mode Query, tri décroissant pour voir les entrées les plus récentes en premier) :
+We check in DynamoDB (Query mode, sorted in descending order to see the most recent entries first):
 
-![Résultats DynamoDB - test latency](images/test2-dynamodb-results.png)
+![DynamoDB results - latency test](images/test2-dynamodb-results.png)
 
-Pour revenir à la config normale, un `terraform apply` sans l'option `-var` suffit : Terraform réapplique la valeur par défaut définie dans `variables.tf`.
+To go back to the normal config, a `terraform apply` without the `-var` option is enough: Terraform reapplies the default value defined in `variables.tf`.
 
-## Test 3 : check_content
+## Test 3: check_content
 
-Ce test-là est différent: il porte sur le contenu affiché par le site, pas sur sa disponibilité ou sa vitesse. Le principe : on uploade un fichier `index.html` de remplacement, avec le même nom que l'original, ce qui écrase le fichier existant sur le bucket S3.
+This test is different: it's about the content displayed by the site, not its availability or speed. The idea: we upload a replacement `index.html` file, with the same name as the original, which overwrites the existing file on the S3 bucket.
 
-![Statut de l'upload S3](images/test3-s3-upload-status.png)
+![S3 upload status](images/test3-s3-upload-status.png)
 
-Le site affiche alors un contenu différent de celui attendu :
+The site then shows content that's different from what's expected:
 
-![Contenu affiché après remplacement](images/test3-browser-content.png)
+![Content displayed after replacement](images/test3-browser-content.png)
 
-En invoquant la Lambda `check_content`, on reçoit une notification d'erreur confirmant que le contenu attendu n'est plus sur la page :
+When invoking the `check_content` Lambda, we get an error notification confirming that the expected content is no longer on the page:
 
-![Notification SNS - test content](images/test3-sns-notification.png)
+![SNS notification - content test](images/test3-sns-notification.png)
 
-Vérification dans DynamoDB : l'échec est bien enregistré (`success = false`), avec le message d'erreur correspondant :
+Check in DynamoDB: the failure is correctly recorded (`success = false`), with the matching error message:
 
-![Résultats DynamoDB - test content](images/test3-dynamodb-results.png)
+![DynamoDB results - content test](images/test3-dynamodb-results.png)
 
-Pour restaurer le bon contenu, un `terraform apply` classique ne suffit pas ici. La ressource `aws_s3_object` ne détecte pas automatiquement les changements faits en dehors de Terraform : le state ne garde que le contenu défini dans la config, pas ce qui se trouve réellement sur le bucket. Il faut donc forcer la recréation de l'objet :
+To restore the correct content, a regular `terraform apply` isn't enough here. The `aws_s3_object` resource doesn't automatically detect changes made outside of Terraform: the state only keeps the content defined in the config, not what's actually on the bucket. So we need to force the object to be recreated:
 
 ```
 terraform apply -replace="module.monitored_site.aws_s3_object.index"
 ```
 
-Cette commande force Terraform à réuploader le contenu défini dans la configuration, indépendamment de ce qui se trouve réellement sur le bucket.
+This command forces Terraform to re-upload the content defined in the configuration, regardless of what is actually on the bucket.
 
-## Constat : absence de déduplication des alertes
+## Finding: no alert deduplication
 
-Les trois tests confirment que le système fonctionne comme prévu, mais ils mettent aussi en évidence une limite : chaque Lambda déclenche sa propre alerte, indépendamment des autres. Si le site tombe complètement, on reçoit jusqu'à 3 notifications distinctes pour ce qui est en réalité un seul incident.
+The three tests confirm that the system works as expected, but they also show a limitation: each Lambda triggers its own alert, independently of the others. If the site goes fully down, up to 3 separate notifications are received for what is actually a single incident.
 
-C'est une amélioration prioritaire pour la suite du projet, avant d'ajouter d'autres types de checks.
+This is a priority improvement for the rest of the project, before adding other types of checks.

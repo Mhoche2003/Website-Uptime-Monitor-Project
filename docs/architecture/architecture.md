@@ -2,15 +2,16 @@
 
 ![Architecture](architecture.png)
 
-Le schema montre les deux pipelines qui composent le systeme.
+The diagram shows the two pipelines that make up the system.
 
-## Pipeline de monitoring
+## Monitoring pipeline
 
-Une regle EventBridge declenche les 3 Lambdas de check (availability, latency, content) toutes les 5 minutes. Chacune envoie une requete HTTPS vers le site surveille, enregistre le resultat dans la table DynamoDB `check history`, et publie une alerte sur le topic SNS en cas d'echec. SNS envoie ensuite un email au proprietaire du site.
+An EventBridge rule triggers the 3 check Lambdas (availability, latency, content) every 5 minutes. Each one sends an HTTPS request to the monitored site, saves the result in the `check history` DynamoDB table, and publishes an alert on the SNS topic if it fails. SNS then sends an email to the site owner.
 
-## Pipeline du dashboard
+## Dashboard pipeline
 
-Une seconde regle EventBridge, independante de la premiere, declenche la Lambda `aggregate metrics`. Elle lit l'historique dans DynamoDB, calcule les metriques du mois en cours et ecrit le resultat dans un fichier `metrics.json` sur le bucket S3 du dashboard. Le dashboard est consulté séparemment par le site owner. 
-## Pourquoi deux pipelines separes
+A second EventBridge rule, independent from the first one, triggers the `aggregate metrics` Lambda. It reads the history from DynamoDB, calculates the metrics for the current month and writes the result to a `metrics.json` file on the dashboard S3 bucket. The dashboard is checked separately by the site owner.
 
-Les checks et l'agregation des metriques n'ont pas besoin de tourner a la meme frequence: les checks doivent etre reactifs (toutes les 5 minutes) pour detecter une panne rapidement, alors que le dashboard n'a pas besoin d'etre mis a jour aussi souvent Donc en séparant les deux, ça evite de recalculer les metriques a chaque check.
+## Why two separate pipelines
+
+The checks and the metrics aggregation don't need to run at the same frequency: the checks need to be reactive (every 5 minutes) to catch an outage fast, while the dashboard doesn't need to be updated as often. Splitting the two avoids recalculating the metrics on every single check.

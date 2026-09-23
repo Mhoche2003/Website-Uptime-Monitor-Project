@@ -1,5 +1,5 @@
-#Cette table stocke le résultat de chaque check du site.
-#Chaque ligne est identifiée par le type de check (availability/latency/content) et la date du test
+#This table stores the result of each check of the site.
+#Each row is identified by the check type (availability/latency/content) and the test date
 
 resource "aws_dynamodb_table" "history" {
   name         = "${var.project_name}-check-history"

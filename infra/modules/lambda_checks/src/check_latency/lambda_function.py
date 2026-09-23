@@ -7,13 +7,13 @@ from decimal import Decimal
 
 import boto3
 
-# Depuis terraform
+# From terraform
 SITE_URL = os.environ["SITE_URL"]
 DYNAMODB_TABLE = os.environ["DYNAMODB_TABLE"]
 SNS_TOPIC_ARN = os.environ["SNS_TOPIC_ARN"]
 LATENCY_THRESHOLD = float(os.environ["LATENCY_THRESHOLD"])
 
-# Les clients AWS sont crees ici donc en dehors de la fonction afin de ne pas les refaire a chaque appel
+# AWS clients are created here, outside the function, so they are not recreated on every call
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(DYNAMODB_TABLE)
 sns = boto3.client("sns")
@@ -25,9 +25,9 @@ def lambda_handler(event, context):
     success = True
     error_message = ""
 
-    # On mesure le temps de reponse 
+    # We measure the response time
     try:
-        with urllib.request.urlopen(SITE_URL, timeout=LATENCY_THRESHOLD + 5): #le timeout est plus large que le seuil pour bien le mesurer
+        with urllib.request.urlopen(SITE_URL, timeout=LATENCY_THRESHOLD + 5): #the timeout is larger than the threshold so we can actually measure it
             pass
     except urllib.error.URLError as e:
         success = False
@@ -39,7 +39,7 @@ def lambda_handler(event, context):
         success = False
         error_message = f"Response time {response_time:.2f}s exceeds threshold of {LATENCY_THRESHOLD}s"
 
-    # On enregistre le resultat du check dans DynamoDB a chaque execution (succes ou echec)
+    # We save the check result in DynamoDB on every run (success or failure)
     table.put_item(Item={
         "check_type": "latency",
         "timestamp": timestamp,
@@ -48,7 +48,7 @@ def lambda_handler(event, context):
         "error_message": error_message,
     })
 
-    # Alerte envoyee seulement si le temps de reponse > seuil
+    # Alert sent only if the response time is above the threshold
     if not success:
         sns.publish(
             TopicArn=SNS_TOPIC_ARN,
