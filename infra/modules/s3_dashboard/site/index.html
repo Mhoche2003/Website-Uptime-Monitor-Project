@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Website Uptime Monitor Dashboard</title>
+<style>
+  :root {
+    --page:         #0d0d0d;
+    --surface:      #1a1a19;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:   #898781;
+    --border:       rgba(255,255,255,0.10);
+    --baseline:     #383835;
+    --series-availability: #3987e5;
+    --series-latency:      #d95926;
+    --series-content:      #199e70;
+    --status-good:    #0ca30c;
+    --status-warning: #fab219;
+    --status-critical:#e66767;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 32px 16px 48px;
+  }
+
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+
+  header .subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0 0 28px;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 8px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: proportional-nums;
+  }
+
+  .stat-value.status-good { color: var(--status-good); }
+  .stat-value.status-warning { color: var(--status-warning); }
+  .stat-value.status-critical { color: var(--status-critical); }
+
+  .chart-card {
+    margin-top: 12px;
+  }
+
+  .chart-card .stat-label { margin-bottom: 18px; }
+
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-evenly;
+    height: 140px;
+    border-bottom: 1px solid var(--baseline);
+    padding: 0 12px;
+  }
+
+  .bar-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 88px;
+  }
+
+  .bar-value {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bar {
+    width: 24px;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.3s ease;
+  }
+
+  .bar-availability { background: var(--series-availability); }
+  .bar-latency { background: var(--series-latency); }
+  .bar-content { background: var(--series-content); }
+
+  .bar-caption {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  footer {
+    margin-top: 24px;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .error {
+    color: var(--status-critical);
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Website Uptime Monitor Dashboard</h1>
+      <p class="subtitle" id="period-subtitle">Chargement des métriques…</p>
+    </header>
+
+    <div id="content" style="display:none">
+      <div class="stats">
+        <div class="card">
+          <p class="stat-label">Disponibilité (mois en cours)</p>
+          <p class="stat-value" id="stat-availability">-</p>
+        </div>
+        <div class="card">
+          <p class="stat-label">Temps de réponse moyen</p>
+          <p class="stat-value" id="stat-latency">-</p>
+        </div>
+        <div class="card">
+          <p class="stat-label">Checks exécutés par contrôle</p>
+          <p class="stat-value" id="stat-checks">-</p>
+        </div>
+        <div class="card">
+          <p class="stat-label">Total d'échecs (mois en cours)</p>
+          <p class="stat-value" id="stat-failures">-</p>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <p class="stat-label">Échecs par type de contrôle (mois en cours)</p>
+        <div class="bars">
+          <div class="bar-col">
+            <span class="bar-value" id="bar-value-availability">0</span>
+            <div class="bar bar-availability" id="bar-availability" style="height:0px"></div>
+            <span class="bar-caption">Disponibilité</span>
+          </div>
+          <div class="bar-col">
+            <span class="bar-value" id="bar-value-latency">0</span>
+            <div class="bar bar-latency" id="bar-latency" style="height:0px"></div>
+            <span class="bar-caption">Latence</span>
+          </div>
+          <div class="bar-col">
+            <span class="bar-value" id="bar-value-content">0</span>
+            <div class="bar bar-content" id="bar-content" style="height:0px"></div>
+            <span class="bar-caption">Contenu</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="error" class="error" style="display:none"></div>
+
+    <footer>
+      <span id="generated-at"></span>
+      <span>Actualisation automatique toutes les 5 minutes</span>
+    </footer>
+  </div>
+
+<script>
+  const REFRESH_MS = 5 * 60 * 1000;
+  const BAR_MAX_HEIGHT = 110;
+
+  function formatPercent(value) {
+    return value.toFixed(2) + '%';
+  }
+
+  function formatDuration(seconds) {
+    if (seconds < 1) {
+      return Math.round(seconds * 1000) + ' ms';
+    }
+    return seconds.toFixed(2) + ' s';
+  }
+
+  function formatInt(n) {
+    return n.toLocaleString('fr-FR');
+  }
+
+  function formatDate(isoString) {
+    return new Date(isoString).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  function availabilityStatus(percent) {
+    if (percent >= 99) return 'status-good';
+    if (percent >= 95) return 'status-warning';
+    return 'status-critical';
+  }
+
+  function renderBars(failures) {
+    const max = Math.max(failures.availability, failures.latency, failures.content, 1);
+    ['availability', 'latency', 'content'].forEach(function (key) {
+      const value = failures[key];
+      document.getElementById('bar-value-' + key).textContent = formatInt(value);
+      document.getElementById('bar-' + key).style.height = Math.round((value / max) * BAR_MAX_HEIGHT) + 'px';
+    });
+  }
+
+  function render(data) {
+    document.getElementById('period-subtitle').textContent =
+      'Période du ' + formatDate(data.period.start) + ' au ' + formatDate(data.period.end);
+
+    const availabilityEl = document.getElementById('stat-availability');
+    availabilityEl.textContent = formatPercent(data.availability_percent);
+    availabilityEl.className = 'stat-value ' + availabilityStatus(data.availability_percent);
+
+    document.getElementById('stat-latency').textContent = formatDuration(data.average_response_time_seconds);
+
+    document.getElementById('stat-checks').textContent = formatInt(data.total_checks_by_check.availability);
+
+    const totalFailures = data.failures_by_check.availability + data.failures_by_check.latency + data.failures_by_check.content;
+    document.getElementById('stat-failures').textContent = formatInt(totalFailures);
+
+    renderBars(data.failures_by_check);
+
+    document.getElementById('generated-at').textContent = 'Dernière génération: ' + formatDate(data.generated_at);
+
+    document.getElementById('content').style.display = '';
+    document.getElementById('error').style.display = 'none';
+  }
+
+  function showError() {
+    document.getElementById('period-subtitle').textContent = '';
+    document.getElementById('content').style.display = 'none';
+    const errorEl = document.getElementById('error');
+    errorEl.textContent = 'Impossible de charger metrics.json pour le moment.';
+    errorEl.style.display = '';
+  }
+
+  function loadMetrics() {
+    fetch('metrics.json', { cache: 'no-store' })
+      .then(function (response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return response.json();
+      })
+      .then(render)
+      .catch(showError);
+  }
+
+  loadMetrics();
+  setInterval(loadMetrics, REFRESH_MS);
+</script>
+</body>
+</html>

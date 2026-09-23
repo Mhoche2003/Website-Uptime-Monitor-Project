@@ -39,3 +39,11 @@ resource "aws_s3_bucket_policy" "dashboard" {
 
   depends_on = [aws_s3_bucket_public_access_block.dashboard]
 }
+
+resource "aws_s3_object" "index" {
+  bucket       = aws_s3_bucket.dashboard.id
+  key          = "index.html"
+  content_type = "text/html"
+  source       = "${path.module}/site/index.html"
+  etag         = filemd5("${path.module}/site/index.html")
+}
