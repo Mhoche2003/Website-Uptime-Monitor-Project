@@ -22,11 +22,11 @@ The project use AWS services like Lambda DynamoDB SNS S3 and EventBridge to run 
 
 ## Testing
 
-The three checks were manually tested by breaking the monitored website on purpose and checking that both the alerts and the history worked as expected, see [testing-3-lambdas.md](docs/testing/testing-3-lambdas.md). The aggregate_metrics Lambda was tested the same way, see [testing-aggregate-metrics.md](docs/testing/testing-aggregate-metrics.md). Both include screenshots of the result.
+The three checks were manually tested by breaking the monitored website on purpose and checking that both the alerts and the history worked as expected, see [testing-3-lambdas.md](docs/testing/testing-3-lambdas.md). The aggregate_metrics Lambda was tested the same way, see [testing-aggregate-metrics.md](docs/testing/testing-aggregate-metrics.md). Both include screenshots of the result. The least-privilege IAM policy was tested by actually detaching AdministratorAccess and fixing every AccessDenied error that came up, see [testing-iam-least-privilege.md](docs/testing/testing-iam-least-privilege.md).
 
 ## Status
 
-The project is build incrementally one validated piece at a time. Check the commit history to see the detail of the progress. The system is now fully operational as a v1: the three checks and the alerting and the history and the dashboard are all working end to end. IAM least-privilege hardening and automated tests with pytest and moto are planned as the next steps.
+The project is build incrementally one validated piece at a time. Check the commit history to see the detail of the progress. The system is now fully operational as a v1: the three checks and the alerting and the history and the dashboard are all working end to end. IAM least-privilege hardening is done, the deployer user now runs on a scoped policy instead of AdministratorAccess. A more complete monitored website and automated tests with pytest and moto are planned as the next steps.
 
 ## Known limitations
 
