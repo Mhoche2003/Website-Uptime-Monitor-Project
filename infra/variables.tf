@@ -26,3 +26,8 @@ variable "latency_threshold_seconds" {
   type        = number
   default     = 30
 }
+
+variable "deployer_iam_user_name" {
+  description = "Name of the existing IAM user that runs Terraform for this project. Set in terraform.tfvars (gitignored), never with a default here."
+  type        = string
+}

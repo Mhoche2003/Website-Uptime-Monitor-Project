@@ -77,3 +77,16 @@ module "aggregate_metrics" {
     ManagedBy = "terraform"
   }
 }
+
+module "iam_deployer" {
+  source = "./modules/iam_deployer"
+
+  project_name           = var.project_name
+  aws_region             = var.aws_region
+  deployer_iam_user_name = var.deployer_iam_user_name
+
+  tags = {
+    Project   = var.project_name
+    ManagedBy = "terraform"
+  }
+}
