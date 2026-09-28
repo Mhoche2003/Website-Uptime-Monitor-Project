@@ -80,7 +80,10 @@ resource "aws_iam_policy" "deployer" {
           "lambda:ListTags",
           "lambda:AddPermission",
           "lambda:RemovePermission",
-          "lambda:GetPolicy"
+          "lambda:GetPolicy",
+          # The AWS provider reads this during refresh for every Lambda function,
+          # even though this project doesn't use code signing.
+          "lambda:GetFunctionCodeSigningConfig"
         ]
         Resource = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${var.project_name}-*"
       },
@@ -134,6 +137,28 @@ resource "aws_iam_policy" "deployer" {
         ]
         #Lambda creates one log group per function automatically. The group name matches the function name.
         Resource = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.project_name}-*"
+      },
+      {
+        #Read-only browsing across the whole account, not just this project's resources.
+        #These List/Describe/Get actions don't support resource-level restriction in AWS (they only work with Resource "*"),
+        #so this statement stays separate from the scoped ones above: it only adds visibility, never the ability
+        #to create, modify or delete anything beyond what the other statements already allow.
+        #events:ListRuleNamesByTarget specifically is what the Lambda console needs to show the EventBridge
+        #trigger box on a function's page (it looks up which rules target that function).
+        Sid    = "ConsoleReadOnlyBrowsing"
+        Effect = "Allow"
+        Action = [
+          "s3:ListAllMyBuckets",
+          "s3:GetBucketLocation",
+          "lambda:ListFunctions",
+          "lambda:GetAccountSettings",
+          "dynamodb:ListTables",
+          "sns:ListTopics",
+          "events:ListRuleNamesByTarget",
+          "logs:DescribeLogGroups",
+          "cloudwatch:GetMetricData"
+        ]
+        Resource = "*"
       },
       {
         #IAM: manage the 2 execution roles used by our Lambdas. Nothing outside this project.
