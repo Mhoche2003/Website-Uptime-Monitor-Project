@@ -12,13 +12,10 @@ terraform {
     }
   }
 
-  backend "s3" {
-    bucket         = "website-uptime-monitor-tfstate-000000000000"
-    key            = "state/terraform.tfstate"
-    region         = "eu-west-1"
-    dynamodb_table = "website-uptime-monitor-tfstate-lock"
-    encrypt        = true
-  }
+  # Backend values (bucket, key, region, dynamodb_table) live in backend.hcl,
+  # gitignored so the AWS account ID does not end up to be display in the public repo.
+  # Run: terraform init -backend-config=backend.hcl
+  backend "s3" {}
 }
 
 provider "aws" {
