@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact</title>
+<style>
+  :root {
+    --page:         #0d0d0d;
+    --surface:      #1a1a19;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:   #898781;
+    --border:       rgba(255,255,255,0.10);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 32px 16px 48px;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  nav {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 32px;
+    font-size: 14px;
+  }
+
+  nav a {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    color: var(--text-primary);
+  }
+
+  header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+
+  header .subtitle {
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin: 0 0 28px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 22px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field:last-of-type {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  input, textarea {
+    width: 100%;
+    background: var(--page);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+  }
+
+  button {
+    margin-top: 18px;
+    background: var(--text-primary);
+    color: var(--page);
+    border: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .note {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <nav>
+    <a href="index.html">Accueil</a>
+    <a href="about.html">A propos</a>
+    <a href="contact.html">Contact</a>
+    <a href="legal.html">Mentions legales</a>
+  </nav>
+  <header>
+    <h1>Contact</h1>
+    <p class="subtitle">Formulaire a titre d'exemple, non fonctionnel sur cette version.</p>
+  </header>
+  <div class="card">
+    <div class="field">
+      <label for="name">Nom</label>
+      <input id="name" type="text" disabled placeholder="Votre nom">
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" disabled placeholder="vous@exemple.com">
+    </div>
+    <div class="field">
+      <label for="message">Message</label>
+      <textarea id="message" disabled placeholder="Votre message"></textarea>
+    </div>
+    <button type="button" disabled>Envoyer</button>
+    <p class="note">Ce formulaire ne collecte ni ne transmet aucune donnee, il illustre juste une page de contact.</p>
+  </div>
+</div>
+</body>
+</html>

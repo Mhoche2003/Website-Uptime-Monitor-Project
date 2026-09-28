@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mentions legales</title>
+<style>
+  :root {
+    --page:         #0d0d0d;
+    --surface:      #1a1a19;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:   #898781;
+    --border:       rgba(255,255,255,0.10);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 32px 16px 48px;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  nav {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 32px;
+    font-size: 14px;
+  }
+
+  nav a {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    color: var(--text-primary);
+  }
+
+  header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+
+  header .subtitle {
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin: 0 0 28px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 22px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .card p + p {
+    margin-top: 14px;
+  }
+
+  .card a {
+    color: var(--text-primary);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <nav>
+    <a href="index.html">Accueil</a>
+    <a href="about.html">A propos</a>
+    <a href="contact.html">Contact</a>
+    <a href="legal.html">Mentions legales</a>
+  </nav>
+  <header>
+    <h1>Mentions legales</h1>
+    <p class="subtitle">Informations sur ce site de demonstration.</p>
+  </header>
+  <div class="card">
+    <p>Ce site est un projet de demonstration technique, sans activite commerciale. Il sert de cible pour le systeme de surveillance developpe dans le cadre du projet Website Uptime Monitor.</p>
+    <p>Hebergement: Amazon S3 (AWS), hosting statique, region eu-west-1.</p>
+    <p>Le formulaire de contact n'est pas fonctionnel sur cette version, aucune donnee n'est collectee ni transmise.</p>
+    <p>Code source disponible publiquement sur <a href="https://github.com/Mhoche2003/Website-Uptime-Monitor-Project" target="_blank" rel="noopener">GitHub</a>.</p>
+  </div>
+</div>
+</body>
+</html>
