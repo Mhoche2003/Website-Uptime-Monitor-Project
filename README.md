@@ -26,11 +26,13 @@ The three checks were manually tested by breaking the monitored website on purpo
 
 ## Status
 
-The project is build incrementally one validated piece at a time. Check the commit history to see the detail of the progress. The system is now fully operational as a v1: the three checks and the alerting and the history and the dashboard are all working end to end. IAM least-privilege hardening is done, the deployer user now runs on a scoped policy instead of AdministratorAccess. A more complete monitored website and automated tests with pytest and moto are planned as the next steps.
+The project is build incrementally one validated piece at a time. Check the commit history to see the detail of the progress. The system is now fully operational as a v1 which mean the three checks and the alerting and the history and the dashboard are all working end to end. IAM least-privilege hardening is done, the deployer user now runs on a scoped policy instead of just AdministratorAccess. The monitored website is done too. It now has real content on 4 pages not just one empty page. You can visit it [here](http://website-uptime-monitor-site.s3-website-eu-west-1.amazonaws.com). The next step is automated tests with pytest and moto.
 
 ## Known limitations
 
 If the website is fully down all three checks fail at the same time and each one send its own SNS notification, so up to 3 separate emails can be sent for a single incident. The three Lambdas are independent and don't know about each other yet. Deduplicating these alerts into a single incident notification is planned as a future improvement.
+
+The dashboard uses plain HTTP, not HTTPS because there is no CloudFront in front of the S3 bucket yet. The Terraform deployer user is also the IAM user for the AWS console login. So a manual change through the console is still possible, on top of what Terraform manages. Separating these two identities might be consider as a improvement for later.
 
 ## Author
 
