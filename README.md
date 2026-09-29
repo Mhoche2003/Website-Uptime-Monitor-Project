@@ -34,6 +34,8 @@ If the website is fully down all three checks fail at the same time and each one
 
 The dashboard uses plain HTTP, not HTTPS because there is no CloudFront in front of the S3 bucket yet. The Terraform deployer user is also the IAM user for the AWS console login. So a manual change through the console is still possible, on top of what Terraform manages. Separating these two identities might be consider as a improvement for later.
 
+The deployer user can also change its own permissions. Terraform needs this to manage the deployer policy and the IAM roles of the Lambdas so it can't just be removed which is make things harder than I thought. It means that if the access keys leaked, an attacker could give AdministratorAccess back to the user. A permissions boundary would fix this. It is not done here because it adds a lot of complexity for this project.
+
 ## Author
 
 Maxime Hochereau final year computer science engineering student. Career goal is cloud architect then cloud cybersecurity.
