@@ -1,38 +1,21 @@
 # Testing the IAM least-privilege policy - Website Uptime Monitor
 
-The goal here is to check that the new `iam_deployer` policy is actually enough on its own to run Terraform on this project, without falling back on the broad `AdministratorAccess` policy.
+This test checks if the new iam_deployer policy is enough on its own to run Terraform without AdministratorAccess policy, applied by default at the beginning of the project.
 
-## Test: detaching AdministratorAccess and running terraform plan
+## Test: detach AdministratorAccess and run terraform plan
 
-The new policy was applied first while `AdministratorAccess` was still attached to the deployer user, so there was no risk of getting locked out. The real test came after that: detaching `AdministratorAccess` manually and running `terraform plan` again with only the new policy active.
+The new policy was applied first while AdministratorAccess was still attached so it allow there was no risk of a potential lockout. The real test was detaching AdministratorAccess (`aws iam detach-user-policy`) and running terraform plan again with only the new policy active.
 
-```
-aws iam detach-user-policy --user-name Maxime --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
-terraform plan
-```
+The first try failed with several AccessDenied errors, like iam:ListAttachedRolePolicies or s3:GetBucketAcl. None of these actions change anything since they are all read-only calls. The Terraform AWS provider makes these calls in the background to check the current state of a resource and they are not visible just by reading the code.
 
-The first attempt failed with several `AccessDenied` errors. None of them were actions the code actually creates or changes, they were read-only actions the Terraform AWS provider calls in the background while refreshing state (`iam:ListAttachedRolePolicies`, `dynamodb:DescribeContinuousBackups`, `dynamodb:DescribeTimeToLive`, `s3:GetBucketAcl`, `s3:GetBucketCORS`, `s3:GetAccelerateConfiguration`, `s3:GetBucketRequestPayment`, `s3:GetBucketLogging`, `sns:GetSubscriptionAttributes`, and more). These calls read config details like bucket ACLs or table backup settings that aren't visible just by reading the Terraform `resource` blocks in this project's code.
+Each missing action was added one at a time, based on the error message. Also, to fix the policy it requires some access so the cycle was: reattach AdministratorAccess then apply the fix, detach it again and finally test with terraform plan.
 
-Each missing action was added one at a time, straight from the exact name in the error message. Since applying a fix to the policy itself needs some access too, the cycle each time was the same: reattach `AdministratorAccess` temporarily, run `terraform apply`, detach `AdministratorAccess` again, then `terraform plan` to retest.
+After a few try on S3 and DynamoDB, listing every read action by hand became too slow. This also meant changing how the policy is written in the Terraform code: the read side of these two services now uses a wildcard instead, s3:Get* and dynamodb:Describe*, still scoped to this project's resources. However actions that create, change or delete something stay listed one by one. Basically only reading was widened.
 
-After a few rounds like this on S3 and DynamoDB, listing every read action by hand stopped being worth it. The read side of these two services now uses a wildcard, `s3:Get*` and `dynamodb:Describe*`, still scoped to this project's resources through the `Resource` field. Actions that create, change or delete something, like `Create`, `Put`, `Delete` and `Update`, stay listed one by one. Only reading was widened.
-
-With that change, `terraform plan` finally came back clean:
-
-```
-No changes. Your infrastructure matches the configuration.
-```
-
-`AdministratorAccess` was then removed for good, confirmed with:
-
-```
-aws iam list-attached-user-policies --user-name Maxime
-```
-
-Only `website-uptime-monitor-deployer-policy` and the pre-existing `Billing` policy remain attached.
+With this change, terraform plan came back clean which means no changes. AdministratorAccess was then removed for good, confirmed with `aws iam list-attached-user-policies`: only the new policy and the pre-existing Billing policy remain attached to the user.
 
 ## Finding
 
-Writing an IAM policy by reading the Terraform code is not enough to get it right on the first try, since the AWS provider reads far more than what is declared in the config. Plenty of read-only calls happen behind the scenes to check the current state of a resource, and there's no way to know all of them in advance. In the end, detaching the broad access and letting real `AccessDenied` errors show up was the only reliable way to find them.
+The most important thing in this part was that reading the Terraform code is not enough to write a correct IAM policy on the first try. The AWS provider makes many read-only calls that are not declared anywhere in the code just to check the current state of things. Detaching the broad access and fixing the real AccessDenied errors one by one was the only reliable way to find them all.
 
-This really got me interested in AWS IAM Access Analyzer, which can generate a policy directly from real CloudTrail activity. It would likely have caught all of this in one pass instead of several rounds of trial and error.
+Above all what I learnt is AWS IAM Access Analyzer can generate a policy from real usage logs instead so It would probably have found all of this in one pass instead of several rounds of trial and error.
