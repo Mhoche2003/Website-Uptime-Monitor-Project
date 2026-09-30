@@ -22,6 +22,9 @@ __pycache__/
 .venv/
 venv/
 .env
+.pytest_cache/
+.coverage
+htmlcov/
 
 # OS / editors
 .DS_Store

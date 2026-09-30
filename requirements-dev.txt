@@ -1,0 +1,5 @@
+# Tools used to run the tests. They are not part of the Lambda zip files.
+pytest==9.1.1
+pytest-cov==7.1.0
+moto[dynamodb,s3,sns]==5.2.3
+boto3==1.43.105
