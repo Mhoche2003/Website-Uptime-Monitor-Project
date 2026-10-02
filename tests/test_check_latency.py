@@ -19,7 +19,6 @@ def test_site_fast():
         result = lambda_function.lambda_handler({}, None)
 
     assert result["success"] is True
-
     rows = table.scan()["Items"]
     assert len(rows) == 1
     assert rows[0]["success"] is True
@@ -31,7 +30,7 @@ def test_site_fast():
 def test_site_too_slow():
     table, sqs, queue_url, s3 = prepare_fake_aws()
     lambda_function = load_lambda("check_latency")
-
+    
     # The fake clock says 40 seconds passed, above the threshold
     with patch("urllib.request.urlopen"), patch.object(lambda_function, "time") as fake_time:
         fake_time.monotonic.side_effect = [0, 40]
