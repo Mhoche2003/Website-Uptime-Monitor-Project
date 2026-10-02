@@ -16,6 +16,20 @@ The diagram below represent the whole system from the check scheduling to the th
 
 ![Architecture](docs/architecture/architecture.png)
 
+## Results
+
+This is the dashboard on 23 September 2026. The failures come from my manual tests, where I broke the site on purpose.
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+When a check fails, an email is sent with the reason, here a 404 on the availability check.
+
+![Alert email](docs/screenshots/alert-email.png)
+
+Every check is saved in DynamoDB, so the history stays available.
+
+![DynamoDB history](docs/testing/manual/images/test1-dynamodb-results.png)
+
 ## Stack
 
 The project use AWS services like Lambda DynamoDB SNS S3 and EventBridge to run everything without any server to manage. Terraform handle the infrastructure as code and keep a remote state on S3 with a lock table on DynamoDB. The Lambda functions are written in Python. Everything is versioned on GitHub and the architecture diagram was made with LucidChart.
