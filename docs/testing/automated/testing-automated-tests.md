@@ -18,7 +18,7 @@ pytest-cov is planned to show the coverage. (Versions are pinned in requirements
 
 Every test has the same 3 steps. First we build the fake AWS (the table, the topic, the bucket). Then we simulate a situation, for example a site that answers 404. At the end we look at what the Lambda did: the row saved in the table and the alert received.
 
-The setup is the same for all the tests, so it lives in one file: [tests/fake_aws.py](../../tests/fake_aws.py). One small thing: SNS doesn't keep the messages it sends only. So a fake queue (SQS, AWS service) is plugged on the fake topic, and the test reads the alerts in this queue.
+The setup is the same for all the tests, so it lives in one file: [tests/fake_aws.py](../../../tests/fake_aws.py). One small thing: SNS doesn't keep the messages it sends only. So a fake queue (SQS, AWS service) is plugged on the fake topic, and the test reads the alerts in this queue.
 
 The Lambdas are not changed. We test the code exactly as it is deployed.
 
@@ -30,7 +30,7 @@ To run everything, from the root of the repo which is going to activate pytest i
 
 ## Tests of check_availability
 
-A site can do 3 things: work, answer with an error, or not answer at all. One test for each. The tests are in [tests/test_check_availability.py](../../tests/test_check_availability.py).
+A site can do 3 things: work, answer with an error, or not answer at all. One test for each. The tests are in [tests/test_check_availability.py](../../../tests/test_check_availability.py).
 
 ### test_site_ok
 
@@ -48,7 +48,7 @@ No network at all. The row is saved as a failure with "Request failed" in the me
 
 ## Tests of check_latency
 
-A site can answer and still be too slow. To test this without waiting 30 seconds for real, the clock of the Lambda is replaced by a fake one that says how many seconds passed. The tests are in [tests/test_check_latency.py](../../tests/test_check_latency.py).
+A site can answer and still be too slow. To test this without waiting 30 seconds for real, the clock of the Lambda is replaced by a fake one that says how many seconds passed. The tests are in [tests/test_check_latency.py](../../../tests/test_check_latency.py).
 
 ### test_site_fast
 
@@ -66,7 +66,7 @@ Exactly 30 seconds. The code uses `>` and not `>=`, so it's still a success and 
 
 ## Tests of check_content
 
-Here the site answers, only the content of the page changes. The tests are in [tests/test_check_content.py](../../tests/test_check_content.py).
+Here the site answers, only the content of the page changes. The tests are in [tests/test_check_content.py](../../../tests/test_check_content.py).
 
 ### test_expected_text_present
 
@@ -84,7 +84,7 @@ The site is down, so the page can't be read at all. The row is a failure with "R
 
 ## Tests of aggregate_metrics
 
-This Lambda doesn't check the site. It reads the history in DynamoDB and writes the metrics.json file for the dashboard. So the tests put known rows in the fake table, freeze the date to 2 October 2026, then read metrics.json in the fake bucket. The tests are in [tests/test_aggregate_metrics.py](../../tests/test_aggregate_metrics.py).
+This Lambda doesn't check the site. It reads the history in DynamoDB and writes the metrics.json file for the dashboard. So the tests put known rows in the fake table, freeze the date to 2 October 2026, then read metrics.json in the fake bucket. The tests are in [tests/test_aggregate_metrics.py](../../../tests/test_aggregate_metrics.py).
 
 ### test_month_with_rows
 

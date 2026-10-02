@@ -22,11 +22,15 @@ The project use AWS services like Lambda DynamoDB SNS S3 and EventBridge to run 
 
 ## Testing
 
-The three checks were manually tested by breaking the monitored website on purpose and checking that both the alerts and the history worked as expected, see [testing-3-lambdas.md](docs/testing/testing-3-lambdas.md). The aggregate_metrics Lambda was tested the same way, see [testing-aggregate-metrics.md](docs/testing/testing-aggregate-metrics.md). Both include screenshots of the result. The least-privilege IAM policy was tested by actually detaching AdministratorAccess and fixing every AccessDenied error that came up, see [testing-iam-least-privilege.md](docs/testing/testing-iam-least-privilege.md).
+The three checks were manually tested by breaking the monitored website on purpose and checking that both the alerts and the history worked as expected, see [testing-3-lambdas.md](docs/testing/manual/testing-3-lambdas.md). The aggregate_metrics Lambda was tested the same way, see [testing-aggregate-metrics.md](docs/testing/manual/testing-aggregate-metrics.md). Both include screenshots of the result. The least-privilege IAM policy was tested by actually detaching AdministratorAccess and fixing every AccessDenied error that came up, see [testing-iam-least-privilege.md](docs/testing/manual/testing-iam-least-privilege.md).
+
+On top of that, the 4 Lambdas have 12 automated tests with pytest and moto, 3 tests per Lambda, see [testing-automated-tests.md](docs/testing/automated/testing-automated-tests.md). This part is very important: the manual tests take several minutes and nobody replays them after each change, but the automated ones replay the same situations in about 10 seconds. If a change breaks a Lambda, a test goes red right away. They run on a fake AWS, so nothing real is touched and nothing is paid. The tests are in the [tests](tests) folder, one file per Lambda: [check_availability](tests/test_check_availability.py), [check_latency](tests/test_check_latency.py), [check_content](tests/test_check_content.py) and [aggregate_metrics](tests/test_aggregate_metrics.py). The doc explains each test, and also shows a test going red after I broke the code on purpose.
 
 ## Status
 
-The project is build incrementally one validated piece at a time. Check the commit history to see the detail of the progress. The system is now fully operational as a v1 which mean the three checks and the alerting and the history and the dashboard are all working end to end. IAM least-privilege hardening is done, the deployer user now runs on a scoped policy instead of just AdministratorAccess. The monitored website is done too. It now has real content on 4 pages not just one empty page. You can visit it [here](http://website-uptime-monitor-site.s3-website-eu-west-1.amazonaws.com). The next step is automated tests with pytest and moto.
+The project is finished. It was built incrementally, one validated piece at a time, check the commit history to see the detail of the progress. The system is fully operational as a v1: the three checks, the alerting, the history and the dashboard all work end to end. IAM least-privilege hardening is done, and the deployer user now runs on a scoped policy instead of AdministratorAccess. The monitored website is done too. It has real content on 4 pages, not just one empty page, you can visit it [here](http://website-uptime-monitor-site.s3-website-eu-west-1.amazonaws.com). The automated tests with pytest and moto are done as well, they cover the logic of the 4 Lambdas.
+
+A better version of the project is coming. The points that could be improved are listed in the limitations below.
 
 ## Known limitations
 
@@ -36,6 +40,8 @@ The dashboard uses plain HTTP, not HTTPS because there is no CloudFront in front
 
 The deployer user can also change its own permissions. Terraform needs this to manage the deployer policy and the IAM roles of the Lambdas so it can't just be removed which is make things harder than I thought. It means that if the access keys leaked, an attacker could give AdministratorAccess back to the user. A permissions boundary would fix this. It is not done here because it adds a lot of complexity for this project.
 
+The automated tests don't cover everything. The pagination in aggregate_metrics (the loop that reads DynamoDB again when the answer is bigger than 1 MB) is not tested. I looked at it, but unfortunately to test it I need to force DynamoDB to split its answers and it was too complex for this project so far. The real AWS side (IAM rights, EventBridge, real emails) is only checked by the manual tests.
+
 ## Author
 
-Maxime Hochereau final year computer science engineering student. Career goal is cloud architect then cloud cybersecurity.
+Maxime Hochereau final year computer science engineering student. Career goal is cloud engineer, cloud architect then cloud cybersecurity.
