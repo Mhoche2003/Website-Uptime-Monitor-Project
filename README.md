@@ -1,5 +1,7 @@
 # Website Uptime Monitor
 
+[![Lambda health](https://github.com/Mhoche2003/Website-Uptime-Monitor-Project/actions/workflows/lambda-health.yml/badge.svg)](https://github.com/Mhoche2003/Website-Uptime-Monitor-Project/actions/workflows/lambda-health.yml)
+
 Website Uptime monitor is a serverless monitoring system for a website build with AWS and Terraform only. It is part of my personal project on AWS during my 5th year degree as computer science student to learn more about AWS architecture and Iac notions.
 
 ## Problem
@@ -38,7 +40,7 @@ The project use AWS services like Lambda DynamoDB SNS S3 and EventBridge to run 
 
 The three checks were manually tested by breaking the monitored website on purpose and checking that both the alerts and the history worked as expected, see [testing-3-lambdas.md](docs/testing/manual/testing-3-lambdas.md). The aggregate_metrics Lambda was tested the same way, see [testing-aggregate-metrics.md](docs/testing/manual/testing-aggregate-metrics.md). Both include screenshots of the result. The least-privilege IAM policy was tested by actually detaching AdministratorAccess and fixing every AccessDenied error that came up, see [testing-iam-least-privilege.md](docs/testing/manual/testing-iam-least-privilege.md).
 
-On top of that, the 4 Lambdas have 12 automated tests with pytest and moto, 3 tests per Lambda, see [testing-automated-tests.md](docs/testing/automated/testing-automated-tests.md). This part is very important: the manual tests take several minutes and nobody replays them after each change, but the automated ones replay the same situations in about 10 seconds. If a change breaks a Lambda, a test goes red right away. They run on a fake AWS, so nothing real is touched and nothing is paid. The tests are in the [automated-tests](automated-tests) folder, one file per Lambda: [check_availability](automated-tests/test_check_availability.py), [check_latency](automated-tests/test_check_latency.py), [check_content](automated-tests/test_check_content.py) and [aggregate_metrics](automated-tests/test_aggregate_metrics.py). The doc explains each test, and also shows a test going red after I broke the code on purpose.
+On top of that, the 4 Lambdas have 12 automated tests with pytest and moto, 3 tests per Lambda, see [testing-automated-tests.md](docs/testing/automated/testing-automated-tests.md). This part is very important: the manual tests take several minutes and nobody replays them after each change, but the automated ones replay the same situations in about 10 seconds. If a change breaks a Lambda, a test goes red right away. They run on a fake AWS, so nothing real is touched and nothing is paid. The tests are written with pytest, and a GitHub Actions workflow runs them automatically on every push and pull request, see [ci-check.md](docs/testing/automated/ci-check.md). The tests are in the [automated-tests](automated-tests) folder, one file per Lambda: [check_availability](automated-tests/test_check_availability.py), [check_latency](automated-tests/test_check_latency.py), [check_content](automated-tests/test_check_content.py) and [aggregate_metrics](automated-tests/test_aggregate_metrics.py). The doc explains each test, and also shows a test going red after I broke the code on purpose.
 
 ## Status
 
