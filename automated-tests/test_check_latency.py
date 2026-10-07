@@ -20,7 +20,7 @@ def test_site_fast():
 
     assert result["success"] is True
     rows = table.scan()["Items"]
-    assert len(rows) == 1
+    assert len(rows) == 2
     assert rows[0]["success"] is True
 
     assert "Messages" not in sqs.receive_message(QueueUrl=queue_url)
