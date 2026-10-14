@@ -1,6 +1,7 @@
 # Shared setup for all the tests
 
 import os
+import sys
 import importlib.util
 from pathlib import Path
 
@@ -11,6 +12,9 @@ os.environ["AWS_DEFAULT_REGION"] = "eu-west-1"
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MODULES = REPO_ROOT / "infra" / "modules"
+
+# incident.py is shared by the 3 check Lambdas, so tests can import it like the Lambdas do
+sys.path.insert(0, str(MODULES / "lambda_checks/src/shared"))
 
 # The 4 Lambdas have the same file name, load them by path
 LAMBDA_FILES = {
