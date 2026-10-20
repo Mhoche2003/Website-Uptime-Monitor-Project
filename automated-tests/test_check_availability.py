@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from moto import mock_aws
 
-from fake_aws import prepare_fake_aws, load_lambda
+from fake_aws import prepare_fake_aws, load_lambda, history_rows
 
 
 # moto = fake AWS
@@ -25,7 +25,7 @@ def test_site_ok():
     assert result["success"] is True
 
     # One row saved, even if everything is fine to keep the historical 
-    rows = table.scan()["Items"]
+    rows = history_rows(table, "availability")
     assert len(rows) == 1
     assert rows[0]["success"] is True
 
@@ -47,7 +47,7 @@ def test_site_returns_404():
     assert result["success"] is False
 
     # The failure is saved with the reason
-    rows = table.scan()["Items"]
+    rows = history_rows(table, "availability")
     assert len(rows) == 1
     assert rows[0]["success"] is False
     assert "404" in rows[0]["error_message"]
@@ -71,7 +71,7 @@ def test_site_unreachable():
 
     assert result["success"] is False
 
-    rows = table.scan()["Items"]
+    rows = history_rows(table, "availability")
     assert rows[0]["success"] is False
     assert "Request failed" in rows[0]["error_message"]
 

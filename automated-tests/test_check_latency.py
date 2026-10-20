@@ -6,7 +6,7 @@
 import json
 from unittest.mock import patch
 from moto import mock_aws
-from fake_aws import prepare_fake_aws, load_lambda
+from fake_aws import prepare_fake_aws, load_lambda, history_rows
 
 @mock_aws
 def test_site_fast():
@@ -19,7 +19,7 @@ def test_site_fast():
         result = lambda_function.lambda_handler({}, None)
 
     assert result["success"] is True
-    rows = table.scan()["Items"]
+    rows = history_rows(table, "latency")
     assert len(rows) == 1
     assert rows[0]["success"] is True
 
@@ -38,7 +38,7 @@ def test_site_too_slow():
 
     assert result["success"] is False
 
-    rows = table.scan()["Items"]
+    rows = history_rows(table, "latency")
     assert len(rows) == 1
     assert rows[0]["success"] is False
     assert "exceeds threshold" in rows[0]["error_message"]

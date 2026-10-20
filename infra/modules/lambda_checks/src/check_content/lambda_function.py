@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 import boto3
+import incident
 
 # From terraform
 SITE_URL = os.environ["SITE_URL"]
@@ -22,10 +23,10 @@ sns = boto3.client("sns")
 def lambda_handler(event, context):
     timestamp = datetime.now(timezone.utc).isoformat()
     start = time.monotonic()
+    site_unreachable = False
     success = True
     error_message = ""
 
-    # We check that the expected text is actually present on the page
     try:
         with urllib.request.urlopen(SITE_URL, timeout=30) as response:
             body = response.read().decode("utf-8", errors="replace")
@@ -33,6 +34,8 @@ def lambda_handler(event, context):
                 success = False
                 error_message = f"Expected content '{EXPECTED_CONTENT}' not found on page"
     except urllib.error.URLError as e:
+        # An HTTP error (404, 500) is also a URLError, but there the site did answer
+        site_unreachable = not isinstance(e, urllib.error.HTTPError)
         success = False
         error_message = f"Request failed: {e}"
 
@@ -47,12 +50,7 @@ def lambda_handler(event, context):
         "error_message": error_message,
     })
 
-    # An alert is only sent when the expected text is missing
-    if not success:
-        sns.publish(
-            TopicArn=SNS_TOPIC_ARN,
-            Subject="Website Uptime Monitor - content check failed",
-            Message=f"Content check failed at {timestamp}.\nReason: {error_message}",
-        )
+    # Called on every result, success too, because a success is what closes the incident
+    incident.handle_result(table, sns, SNS_TOPIC_ARN, "content", success, error_message, site_unreachable)
 
     return {"success": success, "response_time": response_time}
