@@ -1,0 +1,8 @@
+# Force LF for files Terraform reads as raw bytes
+# This stops Windows autocrlf from creating fake infra changes in terraform plan
+*.py text eol=lf
+*.tf text eol=lf
+*.tftpl text eol=lf
+*.html text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
