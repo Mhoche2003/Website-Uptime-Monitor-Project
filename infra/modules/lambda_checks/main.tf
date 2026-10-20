@@ -1,4 +1,4 @@
-# Each zip now has 2 files so the Lambda code and incident.py shared by the 3 checks
+# Each zip now has 2 files: the Lambda code and incident.py shared by the 3 checks
 
 data "archive_file" "check_availability" {
   type        = "zip"

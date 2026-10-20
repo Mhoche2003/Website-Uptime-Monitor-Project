@@ -1,4 +1,4 @@
-# it runs the automated tests whenever a push and pull request is activated to main.
+# it runs the automated tests on every push and pull request to main
 # No need to configure AWS access here since the tests use moto a fake AWS in memory.
 name: Lambda health
 
@@ -19,7 +19,6 @@ jobs:
       - name: Get the code
         uses: actions/checkout@v4
 
-      
       - name: Install Python
         uses: actions/setup-python@v5
         with:
