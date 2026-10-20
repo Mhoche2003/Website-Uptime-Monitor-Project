@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 import boto3
+import incident
 
 # From terraform
 SITE_URL = os.environ["SITE_URL"]
@@ -13,7 +14,7 @@ DYNAMODB_TABLE = os.environ["DYNAMODB_TABLE"]
 SNS_TOPIC_ARN = os.environ["SNS_TOPIC_ARN"]
 LATENCY_THRESHOLD = float(os.environ["LATENCY_THRESHOLD"])
 
-# AWS clients are created here, outside the function, so they are not recreated on every call
+# AWS clients are created here, outside the function so they are not recreated on every call
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(DYNAMODB_TABLE)
 sns = boto3.client("sns")
@@ -22,14 +23,16 @@ sns = boto3.client("sns")
 def lambda_handler(event, context):
     timestamp = datetime.now(timezone.utc).isoformat()
     start = time.monotonic()
+    site_unreachable = False
     success = True
     error_message = ""
 
-    # We measure the response time
     try:
         with urllib.request.urlopen(SITE_URL, timeout=LATENCY_THRESHOLD + 5): #the timeout is larger than the threshold so we can actually measure it
             pass
     except urllib.error.URLError as e:
+        # An HTTP error (404, 500) is also a URLError, but there the site did answer
+        site_unreachable = not isinstance(e, urllib.error.HTTPError)
         success = False
         error_message = f"Request failed: {e}"
 
@@ -48,12 +51,7 @@ def lambda_handler(event, context):
         "error_message": error_message,
     })
 
-    # Alert sent only if the response time is above the threshold
-    if not success:
-        sns.publish(
-            TopicArn=SNS_TOPIC_ARN,
-            Subject="Website Uptime Monitor - latency check failed",
-            Message=f"Latency check failed at {timestamp}.\nReason: {error_message}",
-        )
+    # Called on every result, success too, because a success is what closes the incident
+    incident.handle_result(table, sns, SNS_TOPIC_ARN, "latency", success, error_message, site_unreachable)
 
     return {"success": success, "response_time": response_time}
