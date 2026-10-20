@@ -1,19 +1,45 @@
+# Each zip now has 2 files so the Lambda code and incident.py shared by the 3 checks
+
 data "archive_file" "check_availability" {
   type        = "zip"
-  source_file = "${path.module}/src/check_availability/lambda_function.py"
   output_path = "${path.module}/builds/check_availability.zip"
+
+  source {
+    content  = file("${path.module}/src/check_availability/lambda_function.py")
+    filename = "lambda_function.py"
+  }
+  source {
+    content  = file("${path.module}/src/shared/incident.py")
+    filename = "incident.py"
+  }
 }
 
 data "archive_file" "check_latency" {
   type        = "zip"
-  source_file = "${path.module}/src/check_latency/lambda_function.py"
   output_path = "${path.module}/builds/check_latency.zip"
+
+  source {
+    content  = file("${path.module}/src/check_latency/lambda_function.py")
+    filename = "lambda_function.py"
+  }
+  source {
+    content  = file("${path.module}/src/shared/incident.py")
+    filename = "incident.py"
+  }
 }
 
 data "archive_file" "check_content" {
   type        = "zip"
-  source_file = "${path.module}/src/check_content/lambda_function.py"
   output_path = "${path.module}/builds/check_content.zip"
+
+  source {
+    content  = file("${path.module}/src/check_content/lambda_function.py")
+    filename = "lambda_function.py"
+  }
+  source {
+    content  = file("${path.module}/src/shared/incident.py")
+    filename = "incident.py"
+  }
 }
 
 resource "aws_iam_role" "lambda_checks" {
@@ -42,7 +68,8 @@ resource "aws_iam_role_policy" "lambda_checks" {
     Statement = [
       {
         Effect   = "Allow"
-        Action   = ["dynamodb:PutItem"]
+        # PutItem saves the check result, UpdateItem is for the incident board
+        Action   = ["dynamodb:PutItem", "dynamodb:UpdateItem"]
         Resource = var.dynamodb_table_arn
       },
       {
