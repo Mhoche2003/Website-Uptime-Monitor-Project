@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from moto import mock_aws
 
-from fake_aws import prepare_fake_aws, load_lambda
+from fake_aws import prepare_fake_aws, load_lambda, history_rows
 
 
 @mock_aws
@@ -25,7 +25,7 @@ def test_expected_text_present():
 
     assert result["success"] is True
 
-    rows = table.scan()["Items"]
+    rows = history_rows(table, "content")
     assert len(rows) == 1
     assert rows[0]["success"] is True
 
@@ -46,7 +46,7 @@ def test_expected_text_missing():
 
     assert result["success"] is False
 
-    rows = table.scan()["Items"]
+    rows = history_rows(table, "content")
     assert len(rows) == 1
     assert rows[0]["success"] is False
     assert "not found on page" in rows[0]["error_message"]
@@ -69,7 +69,7 @@ def test_site_unreachable():
 
     assert result["success"] is False
 
-    rows = table.scan()["Items"]
+    rows = history_rows(table, "content")
     assert rows[0]["success"] is False
     assert "Request failed" in rows[0]["error_message"]
 

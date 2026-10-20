@@ -6,6 +6,7 @@ import importlib.util
 from pathlib import Path
 
 import boto3
+from boto3.dynamodb.conditions import Key
 
 # boto3 needs a region
 os.environ["AWS_DEFAULT_REGION"] = "eu-west-1"
@@ -77,3 +78,8 @@ def load_lambda(name):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def history_rows(table, check_type):
+    """Rows saved for one check, the incident board uses check_type "incident" so it never shows up here."""
+    return table.query(KeyConditionExpression=Key("check_type").eq(check_type))["Items"]
