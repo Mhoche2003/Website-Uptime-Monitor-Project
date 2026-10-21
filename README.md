@@ -25,14 +25,6 @@ This is the dashboard on 23 September 2026. The failures come from my manual tes
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
-When a check fails, an email is sent with the reason, here a 404 on the availability check.
-
-![Alert email](docs/screenshots/alert-email.png)
-
-Every check is saved in DynamoDB, so the history stays available.
-
-![DynamoDB history](docs/testing/manual/images/test1-dynamodb-results.png)
-
 ## Stack
 
 AWS services used: Lambda DynamoDB SNS S3 and EventBridge. No server to manage. Terraform handle the infrastructure with a remote state on S3 and a lock table on DynamoDB. The Lambdas are written in Python everything is on GitHub and the diagram was made with LucidChart.
