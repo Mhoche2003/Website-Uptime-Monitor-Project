@@ -27,7 +27,7 @@ This is the dashboard on 23 September 2026. The failures come from my manual tes
 
 ## Stack
 
-AWS services used: Lambda DynamoDB SNS S3 and EventBridge. No server to manage. Terraform handle the infrastructure with a remote state on S3 and a lock table on DynamoDB. The Lambdas are written in Python everything is on GitHub and the diagram was made with LucidChart.
+AWS services used: Lambda DynamoDB SNS S3 EventBridge and CloudWatch. No server to manage. Terraform handle the infrastructure with a remote state on S3 and a lock table on DynamoDB. The Lambdas are written in Python everything is on GitHub and the diagram was made with LucidChart.
 ## Testing
 
 The three checks and the aggregate_metrics Lambda got tested manually by breaking the monitored website on purpose and check that the alert and the history worked like expected. The least-privilege IAM policy was tested the same way by removing AdministratorAccess and fixing every AccessDenied error that showed up.
@@ -37,7 +37,7 @@ On top of that there is 22 automated tests with pytest and moto across the 4 Lam
 Incident management the feature just finished group the alerts from several checks failing at the same time into one single notification instead of one email per check. It got tested the same way than the Lambdas by breaking the site and check the result end to end see [testing-incident-management.md](docs/testing/manual/testing-incident-management.md).
 ## Status
 
-The project is finished as a v1 built step by step check the commit history for the detail. The three checks the alerting the history the incident deduplication and the dashboard all work end to end. IAM least-privilege is done too, and 22 automated tests run on every push and pull request through a GitHub Actions workflow so a broken change get caught right away. The monitored website has real content on 4 pages you can visit it [here](http://website-uptime-monitor-site.s3-website-eu-west-1.amazonaws.com).
+The project is finished as a v1 built step by step check the commit history for the detail. The three checks the alerting the history the incident deduplication and the dashboard all work end to end. IAM least-privilege is done too, and 22 automated tests run on every push and pull request through a GitHub Actions workflow so a broken change get caught right away. CloudWatch alarms also watch the 4 Lambdas so a crash is never silent. The monitored website has real content on 4 pages you can visit it [here](http://website-uptime-monitor-site.s3-website-eu-west-1.amazonaws.com).
 
 A better version is coming see the limitations below.
 ## Known limitations

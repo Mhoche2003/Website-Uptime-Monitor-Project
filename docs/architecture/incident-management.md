@@ -37,7 +37,7 @@ The three check Lambdas now use a shared file called `incident.py` instead of th
 
 ## Known limit
 
-If the code of a Lambda crashes it writes nothing on the board and sends nothing. A CloudWatch alarm on the Lambda errors is planned separately.
+If the code of a Lambda crashes it writes nothing on the board and sends nothing. This case is covered by CloudWatch alarms on each Lambda, see [testing-lambda-alarm.md](../testing/manual/testing-lambda-alarm.md). The alarms are separate from the board: a crash sends its own email but it does not open an incident.
 
 ## Schema
 
