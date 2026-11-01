@@ -139,6 +139,19 @@ resource "aws_iam_policy" "deployer" {
         Resource = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.project_name}-*"
       },
       {
+        Sid    = "CloudWatchAlarmsProject"
+        Effect = "Allow"
+        Action = [
+          "cloudwatch:PutMetricAlarm",
+          "cloudwatch:DeleteAlarms",
+          "cloudwatch:TagResource",
+          "cloudwatch:UntagResource",
+          "cloudwatch:ListTagsForResource"
+        ]
+        #Alarm names start with the project name. Same prefix rule as the other resources.
+        Resource = "arn:aws:cloudwatch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:alarm:${var.project_name}-*"
+      },
+      {
         #Read-only browsing across the whole account, not just this project's resources.
         #These List/Describe/Get actions don't support resource-level restriction in AWS (they only work with Resource "*"),
         #so this statement stays separate from the scoped ones above: it only adds visibility, never the ability
@@ -156,7 +169,8 @@ resource "aws_iam_policy" "deployer" {
           "sns:ListTopics",
           "events:ListRuleNamesByTarget",
           "logs:DescribeLogGroups",
-          "cloudwatch:GetMetricData"
+          "cloudwatch:GetMetricData",
+          "cloudwatch:DescribeAlarms"
         ]
         Resource = "*"
       },

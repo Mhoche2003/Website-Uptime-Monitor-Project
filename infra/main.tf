@@ -78,6 +78,38 @@ module "aggregate_metrics" {
   }
 }
 
+module "lambda_alarms" {
+  source = "./modules/lambda_alarms"
+
+  project_name  = var.project_name
+  sns_topic_arn = module.sns_alerts.topic_arn
+
+  # schedule_seconds must match the EventBridge rate of each Lambda
+  lambdas = {
+    "check-availability" = {
+      function_name    = module.lambda_checks.check_availability_function_name
+      schedule_seconds = 300
+    }
+    "check-latency" = {
+      function_name    = module.lambda_checks.check_latency_function_name
+      schedule_seconds = 300
+    }
+    "check-content" = {
+      function_name    = module.lambda_checks.check_content_function_name
+      schedule_seconds = 300
+    }
+    "aggregate-metrics" = {
+      function_name    = module.aggregate_metrics.aggregate_metrics_function_name
+      schedule_seconds = 3600
+    }
+  }
+
+  tags = {
+    Project   = var.project_name
+    ManagedBy = "terraform"
+  }
+}
+
 module "iam_deployer" {
   source = "./modules/iam_deployer"
 
