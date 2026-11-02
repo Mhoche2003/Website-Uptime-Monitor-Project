@@ -35,9 +35,9 @@ The opening email gives the check that detected the incident and its error messa
 
 The three check Lambdas now use a shared file called `incident.py` instead of their old alert code. One more IAM action was needed which is `dynamodb:UpdateItem` and the tests got updated, with 10 new tests just for `incident.py`. Nothing changed for `aggregate_metrics`, the dashboard, the history and EventBridge.
 
-## Known limit
+## When a Lambda crashes
 
-If the code of a Lambda crashes it writes nothing on the board and sends nothing. This case is covered by CloudWatch alarms on each Lambda, see [testing-lambda-alarm.md](../testing/manual/testing-lambda-alarm.md). The alarms are separate from the board: a crash sends its own email but it does not open an incident.
+If the code of a Lambda crashes it writes nothing on the board and sends nothing. This case is covered by CloudWatch alarms on each Lambda, see [testing-lambda-alarm.md](../testing/manual/testing-lambda-alarm.md). The alarms are separate from the board on purpose: a crash sends its own email but it does not open an incident.
 
 ## Schema
 

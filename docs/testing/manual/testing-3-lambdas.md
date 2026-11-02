@@ -66,6 +66,6 @@ This command forces Terraform to re-upload the content defined in the configurat
 
 ## Finding: no alert deduplication
 
-The three tests confirm that the system works as expected, but they also show a limitation: each Lambda triggers its own alert, independently of the others. If the site goes fully down, up to 3 separate notifications are received for what is actually a single incident.
+The three tests confirm that the system works as expected. They also show that each Lambda triggers its own alert, independently of the others. If the site goes fully down, up to 3 separate notifications are received for what is actually a single incident.
 
-This is a priority improvement for the rest of the project, before adding other types of checks.
+This finding led to the incident management, see [testing-incident-management.md](testing-incident-management.md).

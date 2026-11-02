@@ -48,13 +48,15 @@ Everything work end to end. The three checks the alerting the history the incide
 
 The monitored website has real content on 4 pages you can visit it [here](http://website-uptime-monitor-site.s3-website-eu-west-1.amazonaws.com).
 
-## Known limitations
+## Design choices
 
-The dashboard uses plain HTTP there is no CloudFront in front of the S3 bucket. The Terraform deployer user is also the IAM user for the console login so a manual change outside Terraform is still possible.
+The dashboard uses plain HTTP because the S3 website endpoint does not support HTTPS. It is public and read only and it show only availability numbers so nothing sensitive goes through. CloudFront would add HTTPS but it is more infrastructure than this project need.
 
-The deployer can also change its own permissions because Terraform need this to manage the deployer policy and the Lambda roles. It means if the access keys leak an attacker could give AdministratorAccess back to itself. A permissions boundary would fix this not done here because it add a lot of complexity for this project size.
+The Terraform deployer is also the IAM user for the console login. It is a personal account with one person so one identity keep things simple. Changes go through Terraform and the plan show any difference with the real infrastructure.
 
-The automated tests don't cover everything. The pagination in aggregate_metrics (the loop that read DynamoDB again when the answer is bigger than 1 MB) is not tested because simulating it was too complex for this project size. The real AWS side (IAM rights EventBridge real emails) is only checked by the manual tests.
+The deployer can change its own permissions because Terraform need this to manage the deployer policy and the Lambda roles. A permissions boundary would close this but it add a lot of complexity for this project size so the access keys are kept private instead.
+
+The 22 automated tests cover the logic of the 4 Lambdas and the incident handling on a fake AWS. The real AWS side (IAM rights EventBridge real emails and CloudWatch alarms) is checked by the manual tests. The pagination in aggregate_metrics (the loop that read DynamoDB again when the answer is bigger than 1 MB) is not simulated.
 
 ## Author
 

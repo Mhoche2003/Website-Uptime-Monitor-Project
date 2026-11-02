@@ -1,6 +1,6 @@
 # Testing Lambda alarms - Website Uptime Monitor
 
-The incident management test left a blind spot (see `incident-management.md`, "Known limit"): if the code of a Lambda crashes it writes nothing on the board and sends nothing. The owner would never know that the monitoring itself is broken. This test checks that the CloudWatch alarms catch it.
+The incident management test left a blind spot (see `incident-management.md`, "When a Lambda crashes"): if the code of a Lambda crashes it writes nothing on the board and sends nothing. The owner would never know that the monitoring itself is broken. This test checks that the CloudWatch alarms catch it.
 
 ## What is watched
 
@@ -34,4 +34,4 @@ The 8 alarms are back to OK:
 
 A Lambda crash that was invisible before now sends an email after a few minutes and another one when it is fixed.
 
-Two limits. The email is the raw CloudWatch text so it is less clean than the incident emails. The alarms are also separate from the incident board: a crash sends its own email but it does not open an incident.
+Two things to know. The email is the raw CloudWatch text so it is less clean than the incident emails. The alarms are also separate from the incident board: a crash sends its own email but it does not open an incident.

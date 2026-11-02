@@ -114,8 +114,8 @@ Then the code was put back and everything was green again. It's a tiny change th
 
 While preparing the tests we saw that `urlopen` raises an error by itself on a 404 or a 500. So the line `if status >= 400` in check_availability is never reached. The behavior is still correct, because the error is caught by the `except` block and gives "Request failed: HTTP Error 404: Not Found". We didn't change the code, and the test checks the real behavior.
 
-## What is not tested
+## What the automated tests cover
 
-The pagination in aggregate_metrics, which is the loop that follows `LastEvaluatedKey`. DynamoDB cuts a response at 1 MB and the project is far from that. We looked at how to test it, but we need to force DynamoDB to split its answers, and that was too complex for this project.
+The automated tests cover the logic of the 4 Lambdas and the incident handling on a fake AWS. The real AWS side (IAM rights, EventBridge schedule, real emails, CloudWatch alarms) is covered by the manual tests. The two work together: the manual tests prove it work for real and the automated tests replay it fast on every push.
 
-The real AWS side (IAM rights, EventBridge schedule, real emails) is covered by the manual tests only. The automated tests don't replace them, they come after.
+One case is left out on purpose. It is the pagination in aggregate_metrics, which is the loop that follows `LastEvaluatedKey`. DynamoDB cuts a response at 1 MB and the project is far from that. To test it we need to force DynamoDB to split its answers, and that is too complex for this project size.

@@ -1,6 +1,6 @@
 # Testing incident management - Website Uptime Monitor
 
-The 3 Lambdas test (`testing-3-lambdas.md`) showed a limitation: when the site is fully down the 3 checks fail at the same time and each one send its own email so up to 3 notifications arrive for what is actually one single incident. This test check that the fix works: one incident one opened email one resolved email.
+The 3 Lambdas test (`testing-3-lambdas.md`) showed a problem: when the site is fully down the 3 checks fail at the same time and each one send its own email so up to 3 notifications arrive for what is actually one single incident. This test check that the fix works: one incident one opened email one resolved email.
 
 ## Test: full site outage
 
